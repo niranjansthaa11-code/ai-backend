@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
         const { messages } = req.body;
 
-        const response = await fetch("https://ai.hackclub.com/proxy/v1/chat/completions", {
+        const response = await fetch("https://ai.hackclub.com/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
