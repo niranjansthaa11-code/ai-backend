@@ -15,14 +15,14 @@ export default async function handler(req, res) {
     try {
         const { messages } = req.body;
 
-        const response = await fetch("https://ai.hackclub.com/chat/completions", {
+        const response = await fetch("https://ai.hackclub.com/proxy/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${process.env.HACKCLUB_API_KEY}`
             },
             body: JSON.stringify({
-                model: "qwen/qwen3-32b",
+                model: "deepseek-v3.2",
                 messages: [
                     {
                         role: "system",
