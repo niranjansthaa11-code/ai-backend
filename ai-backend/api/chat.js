@@ -19,7 +19,7 @@ export default async function handler(req, res) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer sk-hc-v1-95323fe12bec40cfadbc742590e73d74bbdd8f225024416b965dd43c975487d6"
+                "Authorization": `Bearer ${process.env.HACKCLUB_API_KEY}`
             },
             body: JSON.stringify({
                 model: "qwen/qwen3-32b",
