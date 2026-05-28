@@ -22,7 +22,7 @@ export default async function handler(req, res) {
                 "Authorization": `Bearer ${process.env.HACKCLUB_API_KEY}`
             },
             body: JSON.stringify({
-                model: "deepseek-v3.2",
+                model: "deepseek/deepseek-v3.2",
                 messages: [
                     {
                         role: "system",
