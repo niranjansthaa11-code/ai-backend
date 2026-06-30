@@ -64,7 +64,7 @@ Language:
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer invalid-key`
+                    "Authorization": `Bearer  ${process.env.HACKCLUB_API_KEY}`
                 },
                 body: JSON.stringify({
                     model: "deepseek/deepseek-v3.2",
