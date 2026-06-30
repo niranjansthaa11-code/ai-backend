@@ -86,6 +86,7 @@ Language:
 
             //if we get real reply make the use of hc ai if not use gemini soo
             if (hcResponse.ok && hcReply) {
+                console.log(" Deepseek use vairaxw hai ");
                 return res.status(200).json(hcData);
             }
 
