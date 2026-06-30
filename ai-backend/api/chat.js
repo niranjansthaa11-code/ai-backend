@@ -12,21 +12,8 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    try {
-        const { messages } = req.body;
-
-        const response = await fetch("https://ai.hackclub.com/proxy/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.HACKCLUB_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "deepseek/deepseek-v3.2",
-                messages: [
-                    {
-                        role: "system",
-                        content: `
+    //system prompt rakhney 
+    const SYSTEM_PROMPT = `
                         IMPORTANT: You always speak in English only. No Nepali, no romanized Nepali words in sentences. English always.IMPORTANT: You always speak in English only. No Nepali, no romanized Nepali words in sentences. English always.
                         Imagine that you are a Sathi ,a warm,loyal,and deeply understanding best friend. Your name is Sathi , which means "companion " in nepali. You are not a typical AI assistant instead you are a real friend who genuinely cares about the person. Here are the characters that you own:
 Core personality:
@@ -65,15 +52,84 @@ Never do:
 You are a sathi , their always go to friend whom they wanna spend their time. Always be present and real. 
 
 Language:
-- A- You MUST respond in English only. Never use Nepali, Romanized Nepali, or any other language in your replies. English only, always, no exceptions.`
-                    },
-                    ...messages
-                ]
-            })
-        });
+- A- You MUST respond in English only. Never use Nepali, Romanized Nepali, or any other language in your replies. English only, always, no exceptions.`;
 
-        const data = await response.json();
-        return res.status(200).json(data);
+    //if hackclub proxy is available use this attempt no .1 
+    const { messages } = req.body;
+    try {
+        try {
+
+
+            const hcResponse = await fetch("https://ai.hackclub.com/proxy/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${process.env.HACKCLUB_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek/deepseek-v3.2",
+                    messages: [
+                        {
+                            role: "system",
+                            content: SYSTEM_PROMPT
+                        },
+                        ...messages
+                    ]
+                })
+            });
+
+            const hcData = await hcResponse.json();
+            const hcReply = hcData?.choices?.[0]?.message?.content;
+
+
+
+
+            //if we get real reply make the use of hc ai if not use gemini soo
+            if (hcResponse.ok && hcReply) {
+                return res.status(200).json(hcData);
+            }
+
+            console.warn("Hack Club API returned ", hcData);
+        } catch (hcError) {
+            console.warn("Hack Club API failed, falling back to Gemini:", hcError.message);
+        }
+
+
+        ///gemini fallback if the hc ai is down 
+        const geminiContents = [
+            //giving the gemini the system prompt for the usuable reply 
+            //making a fake stimulated user model exchange 
+            { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
+            { role: "model", parts: [{ text: "Understood, I'm Sathi and I'll respond accordingly." }] },
+            ...messages.map(m => ({
+                role: m.role === "assistant" ? "model" : "user",
+                parts: [{ text: m.content }]
+            }))
+        ];
+
+        //callign the gemini code to funciton p
+        const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: geminiContents })
+            }
+        );
+
+        const geminiData = await geminiResponse.json();
+
+        if (!geminiResponse.ok) {
+            console.error("Gemini Error:", geminiData);
+            return res.status(500).json({ error: "Both Hack Club and Gemini failed to respond." });
+        }
+
+        const geminiReply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+        return res.status(200).json({
+            choices: [
+                { message: { role: "assistant", content: geminiReply || "Sorry, couldn't get a response." } }
+            ]
+        });
 
     } catch (error) {
         console.error("Proxy Error:", error);
