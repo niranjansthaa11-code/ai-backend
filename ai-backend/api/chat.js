@@ -121,7 +121,7 @@ Language:
 
         if (!geminiResponse.ok) {
             console.error("Gemini Error:", geminiData);
-            return res.status(500).json({ error: "Both Hack Club and Gemini failed to respond." });
+            return res.status(500).json({ error: "Gemini failed", details: geminiData });
         }
 
         const geminiReply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
