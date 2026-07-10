@@ -110,7 +110,7 @@ Language:
 
         //callign the gemini code to funciton p
         const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,            {
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,            {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: geminiContents })
@@ -121,7 +121,7 @@ Language:
 
         if (!geminiResponse.ok) {
             console.error("Gemini Error:", geminiData);
-            return res.status(500).json({ error: "Gemini failed", details: geminiData });
+            return res.status(500).json({ error: "Both Hack Club and Gemini failed to respond." });
         }
 
         const geminiReply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
